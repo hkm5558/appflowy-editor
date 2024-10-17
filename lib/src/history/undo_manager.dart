@@ -102,7 +102,7 @@ class UndoManager {
     }
     final last = undoStack.last;
     if (last.sealed) {
-      redoStack.clear();
+      // redoStack.clear();
       final item = HistoryItem();
       undoStack.push(item);
       return item;
