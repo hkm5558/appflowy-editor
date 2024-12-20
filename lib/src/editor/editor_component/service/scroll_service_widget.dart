@@ -100,18 +100,21 @@ class _ScrollServiceWidgetState extends State<ScrollServiceWidget>
       final endTouchPoint = selectionRect.last.centerRight;
 
       if (PlatformExtension.isMobile) {
-        // soft keyboard
-        // workaround: wait for the soft keyboard to show up
-        final duration = KeyboardHeightObserver.currentKeyboardHeight == 0
-            ? const Duration(milliseconds: 250)
-            : Duration.zero;
-        return Future.delayed(duration, () {
-          startAutoScroll(
-            endTouchPoint,
-            edgeOffset: editorState.autoScrollEdgeOffset,
-            duration: Duration.zero,
-          );
-        });
+        if (selectionRect.length == 1 &&
+            selectionRect.last.width <= editorState.editorStyle.cursorWidth) {
+          // soft keyboard
+          // workaround: wait for the soft keyboard to show up
+          final duration = KeyboardHeightObserver.currentKeyboardHeight == 0
+              ? const Duration(milliseconds: 250)
+              : Duration.zero;
+          return Future.delayed(duration, () {
+            startAutoScroll(
+              endTouchPoint,
+              edgeOffset: editorState.autoScrollEdgeOffset,
+              duration: Duration.zero,
+            );
+          });
+        }
       } else {
         startAutoScroll(
           endTouchPoint,

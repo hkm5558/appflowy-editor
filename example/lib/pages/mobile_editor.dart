@@ -89,6 +89,8 @@ class _MobileEditorState extends State<MobileEditor> {
                 editorScrollController: editorScrollController,
                 blockComponentBuilders: blockComponentBuilders,
                 showMagnifier: true,
+                autoScrollEdgeOffset: 50,
+                // disableAutoScroll: false,
                 // showcase 3: customize the header and footer.
                 header: Padding(
                   padding: const EdgeInsets.only(bottom: 10.0),
@@ -124,7 +126,7 @@ class _MobileEditorState extends State<MobileEditor> {
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      magnifierSize: const Size(144, 96),
+      magnifierSize: const Size(72, 48),
       mobileDragHandleBallSize: const Size(12, 12),
     );
   }

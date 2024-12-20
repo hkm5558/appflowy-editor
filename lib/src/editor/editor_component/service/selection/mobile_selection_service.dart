@@ -11,6 +11,7 @@ import 'package:appflowy_editor/src/service/selection/mobile_selection_gesture.d
 import 'package:flutter/material.dart' hide Overlay, OverlayEntry;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:appflowy_editor/src/editor/toolbar/mobile/utils/keyboard_height_observer.dart';
 
 /// only used in mobile
 ///
@@ -478,7 +479,73 @@ class _MobileSelectionServiceWidgetState
     if (newSelection != null) {
       updateSelection(newSelection);
     }
+    if (mode == MobileSelectionDragMode.leftSelectionHandle ||
+        mode == MobileSelectionDragMode.rightSelectionHandle) {
+      final autoScroller = editorState.autoScroller;
+      final RenderBox scrollRenderBox =
+          autoScroller?.scrollable.context.findRenderObject()! as RenderBox;
+      final Rect globalRect = MatrixUtils.transformRect(
+        scrollRenderBox.getTransformTo(null),
+        Rect.fromLTWH(
+          0,
+          0,
+          scrollRenderBox.size.width,
+          scrollRenderBox.size.height,
+        ),
+      );
+      final edgeOffset = editorState.autoScrollEdgeOffset;
+      final isTopEdge =
+          details.globalPosition.dy - globalRect.top <= edgeOffset;
+      final isBottomEdge =
+          globalRect.bottom - details.globalPosition.dy <= edgeOffset;
+      final isEdge = isTopEdge || isBottomEdge;
+      final selectionRect = editorState.selectionRects();
+      if (selectionRect.isNotEmpty) {
+        if (isTopEdge) {
+          final rect = selectionRect.first;
+          final dy = rect.top - edgeOffset;
+          autoScroller?.startAutoScroll(
+            Offset(0, dy),
+            direction: AxisDirection.up,
+          );
+        }
+        if (isBottomEdge) {
+          final rect = selectionRect.last;
+          final dy = rect.bottom + edgeOffset;
+          autoScroller?.startAutoScroll(
+            Offset(0, dy),
+            direction: AxisDirection.down,
+          );
+        }
+      }
+    }
+    if (mode == MobileSelectionDragMode.cursor) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (timeStamp) async {
+          final selectionRect = editorState.selectionRects();
+          if (selectionRect.isEmpty) {
+            return;
+          }
 
+          final endTouchPoint = selectionRect.last.centerRight;
+          if (PlatformExtension.isMobile) {
+            // soft keyboard
+            // workaround: wait for the soft keyboard to show up
+            final duration = KeyboardHeightObserver.currentKeyboardHeight == 0
+                ? const Duration(milliseconds: 250)
+                : Duration.zero;
+            return Future.delayed(duration, () {
+              final autoScroller = editorState.autoScroller;
+              autoScroller?.startAutoScroll(
+                endTouchPoint,
+                edgeOffset: editorState.autoScrollEdgeOffset,
+                duration: Duration.zero,
+              );
+            });
+          }
+        },
+      );
+    }
     return newSelection;
   }
 
