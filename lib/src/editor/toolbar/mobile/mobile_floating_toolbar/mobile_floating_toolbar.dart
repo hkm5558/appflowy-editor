@@ -191,6 +191,9 @@ class _MobileFloatingToolbarState extends State<MobileFloatingToolbar>
     if (rects.length <= 1 && rect.isEmpty) {
       return;
     }
+    if (rect.isEmpty) {
+      return;
+    }
     _toolbarContainer = OverlayEntry(
       builder: (context) {
         return _buildToolbar(
