@@ -100,6 +100,10 @@ class _MobileSelectionServiceWidgetState
     listen: false,
   );
 
+  bool isCollapsedHandleVisible = false;
+
+  Timer? collapsedHandleTimer;
+
   @override
   void initState() {
     super.initState();
@@ -114,6 +118,7 @@ class _MobileSelectionServiceWidgetState
     WidgetsBinding.instance.removeObserver(this);
     selectionNotifierAfterLayout.dispose();
     editorState.selectionNotifier.removeListener(_updateSelection);
+    collapsedHandleTimer?.cancel();
 
     super.dispose();
   }
@@ -179,13 +184,15 @@ class _MobileSelectionServiceWidgetState
       valueListenable: selectionNotifierAfterLayout,
       builder: (context, selection, _) {
         if (selection == null || !selection.isCollapsed) {
+          isCollapsedHandleVisible = false;
           return const SizedBox.shrink();
         }
 
-        // on iOS, the drag handle should be updated when typing text.
+        // on Android, the drag handle should be updated when typing text.
         if (PlatformExtension.isAndroid &&
             editorState.selectionUpdateReason !=
                 SelectionUpdateReason.uiEvent) {
+          isCollapsedHandleVisible = false;
           return const SizedBox.shrink();
         }
 
@@ -194,6 +201,7 @@ class _MobileSelectionServiceWidgetState
               MobileSelectionDragMode.leftSelectionHandle,
               MobileSelectionDragMode.rightSelectionHandle,
             ].contains(dragMode)) {
+          isCollapsedHandleVisible = false;
           return const SizedBox.shrink();
         }
 
@@ -207,8 +215,13 @@ class _MobileSelectionServiceWidgetState
         );
 
         if (node == null || rect == null) {
+          isCollapsedHandleVisible = false;
           return const SizedBox.shrink();
         }
+
+        isCollapsedHandleVisible = true;
+
+        _clearCollapsedHandleOnAndroid();
 
         final editorStyle = editorState.editorStyle;
         return MobileCollapsedHandle(
@@ -219,6 +232,14 @@ class _MobileSelectionServiceWidgetState
           handleBallWidth: editorStyle.mobileDragHandleBallSize.width,
           enableHapticFeedbackOnAndroid:
               editorStyle.enableHapticFeedbackOnAndroid,
+          onDragging: (isDragging) {
+            if (isDragging) {
+              collapsedHandleTimer?.cancel();
+              collapsedHandleTimer = null;
+            } else {
+              _clearCollapsedHandleOnAndroid();
+            }
+          },
         );
       },
     );
@@ -298,6 +319,25 @@ class _MobileSelectionServiceWidgetState
           enableHapticFeedbackOnAndroid:
               editorStyle.enableHapticFeedbackOnAndroid,
         );
+      },
+    );
+  }
+
+  // The collapsed handle will be dismissed when no user interaction is detected.
+  void _clearCollapsedHandleOnAndroid() {
+    if (!PlatformExtension.isAndroid) {
+      return;
+    }
+    collapsedHandleTimer?.cancel();
+    collapsedHandleTimer = Timer(
+      editorState.editorStyle.autoDismissCollapsedHandleDuration,
+      () {
+        if (isCollapsedHandleVisible) {
+          editorState.updateSelectionWithReason(
+            editorState.selection,
+            reason: SelectionUpdateReason.transaction,
+          );
+        }
       },
     );
   }
@@ -394,7 +434,7 @@ class _MobileSelectionServiceWidgetState
     final selection = editorState.selection;
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      selectionNotifierAfterLayout.value = selection;
+      if (mounted) selectionNotifierAfterLayout.value = selection;
     });
 
     if (currentSelection.value != selection) {

@@ -67,6 +67,7 @@ Future<void> onNonTextUpdate(
             offset: nonTextUpdate.selection.start,
           ),
         ),
+        reason: SelectionUpdateReason.uiEvent,
       );
     }
   } else if (PlatformExtension.isIOS) {

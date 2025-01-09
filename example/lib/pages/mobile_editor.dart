@@ -1,6 +1,7 @@
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 class MobileEditor extends StatefulWidget {
   const MobileEditor({
@@ -89,8 +90,6 @@ class _MobileEditorState extends State<MobileEditor> {
                 editorScrollController: editorScrollController,
                 blockComponentBuilders: blockComponentBuilders,
                 showMagnifier: true,
-                autoScrollEdgeOffset: 50,
-                // disableAutoScroll: false,
                 // showcase 3: customize the header and footer.
                 header: Padding(
                   padding: const EdgeInsets.only(bottom: 10.0),
@@ -126,8 +125,12 @@ class _MobileEditorState extends State<MobileEditor> {
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      magnifierSize: const Size(72, 48),
-      mobileDragHandleBallSize: const Size(12, 12),
+      magnifierSize: const Size(144, 96),
+      mobileDragHandleBallSize: UniversalPlatform.isIOS
+          ? const Size.square(12)
+          : const Size.square(8),
+      mobileDragHandleLeftExtend: 12.0,
+      mobileDragHandleWidthExtend: 24.0,
     );
   }
 
