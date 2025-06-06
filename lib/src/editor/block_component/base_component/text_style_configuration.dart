@@ -6,9 +6,7 @@ class TextStyleConfiguration {
     this.text = const TextStyle(fontSize: 16.0),
     this.bold = const TextStyle(fontWeight: FontWeight.bold),
     this.italic = const TextStyle(fontStyle: FontStyle.italic),
-    this.underline = const TextStyle(
-      decoration: TextDecoration.underline,
-    ),
+    this.underline = const TextStyle(decoration: TextDecoration.underline),
     this.strikethrough = const TextStyle(
       decoration: TextDecoration.lineThrough,
     ),
@@ -20,12 +18,11 @@ class TextStyleConfiguration {
       color: Colors.red,
       backgroundColor: Color.fromARGB(98, 0, 195, 255),
     ),
-    this.autoComplete = const TextStyle(
-      color: Colors.grey,
-    ),
+    this.autoComplete = const TextStyle(color: Colors.grey),
     this.applyHeightToFirstAscent = false,
     this.applyHeightToLastDescent = false,
     this.lineHeight = 1.5,
+    this.strutStyle,
     this.leadingDistribution = TextLeadingDistribution.even,
   });
 
@@ -60,6 +57,8 @@ class TextStyleConfiguration {
   final double lineHeight;
   final TextLeadingDistribution leadingDistribution;
 
+  final StrutStyle? strutStyle;
+
   TextStyleConfiguration copyWith({
     TextStyle? text,
     TextStyle? bold,
@@ -72,6 +71,7 @@ class TextStyleConfiguration {
     bool? applyHeightToFirstAscent,
     bool? applyHeightToLastDescent,
     double? lineHeight,
+    StrutStyle? strutStyle,
     TextLeadingDistribution? leadingDistribution,
   }) {
     return TextStyleConfiguration(
@@ -88,6 +88,7 @@ class TextStyleConfiguration {
       applyHeightToLastDescent:
           applyHeightToLastDescent ?? this.applyHeightToLastDescent,
       lineHeight: lineHeight ?? this.lineHeight,
+      strutStyle: strutStyle ?? this.strutStyle,
       leadingDistribution: leadingDistribution ?? this.leadingDistribution,
     );
   }
