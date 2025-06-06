@@ -182,20 +182,25 @@ class EditorScrollController {
     required double offset,
   }) async {
     if (shrinkWrap) {
-      return scrollController.jumpTo(
-        offset.clamp(
-          scrollController.position.minScrollExtent,
-          scrollController.position.maxScrollExtent,
-        ),
-      );
+      if (scrollController.hasClients) {
+        scrollController.jumpTo(
+          offset.clamp(
+            scrollController.position.minScrollExtent,
+            scrollController.position.maxScrollExtent,
+          ),
+        );
+      }
+
+      return;
     }
 
     final index = offset.toInt();
     final (start, end) = visibleRangeNotifier.value;
+
     if (index < start || index > end) {
       itemScrollController.jumpTo(
         index: max(0, index),
-        alignment: 0.5,
+        alignment: 0,
       );
     }
   }

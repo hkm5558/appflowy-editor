@@ -25,7 +25,7 @@ class _ScrollServiceWidgetState extends State<ScrollServiceWidget>
     implements AppFlowyScrollService {
   final _forwardKey =
       GlobalKey(debugLabel: 'forward_to_platform_scroll_service');
-  AppFlowyScrollService get forward =>
+  late AppFlowyScrollService forward =
       _forwardKey.currentState as AppFlowyScrollService;
 
   late EditorState editorState = context.read<EditorState>();
@@ -91,35 +91,49 @@ class _ScrollServiceWidgetState extends State<ScrollServiceWidget>
       return;
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       final selectionRect = editorState.selectionRects();
-      if (selectionRect.isEmpty) {
-        return;
-      }
-
-      final endTouchPoint = selectionRect.last.centerRight;
+      final endTouchPoint = selectionRect.lastOrNull?.centerRight;
 
       if (PlatformExtension.isMobile) {
-        if (selectionRect.length == 1 &&
-            selectionRect.last.width <= editorState.editorStyle.cursorWidth) {
-          // soft keyboard
-          // workaround: wait for the soft keyboard to show up
-          final duration = KeyboardHeightObserver.currentKeyboardHeight == 0
-              ? const Duration(milliseconds: 250)
-              : Duration.zero;
-          return Future.delayed(duration, () {
+        // soft keyboard
+        // workaround: wait for the soft keyboard to show up
+        final duration = KeyboardHeightObserver.currentKeyboardHeight == 0
+            ? const Duration(milliseconds: 250)
+            : Duration.zero;
+
+        Future.delayed(duration, () {
+          if (_forwardKey.currentContext == null) {
+            return;
+          }
+          if (endTouchPoint == null) {
+            jumpTo(selection.end.path.first);
+          } else {
             startAutoScroll(
               endTouchPoint,
               edgeOffset: editorState.autoScrollEdgeOffset,
               duration: Duration.zero,
             );
-          });
-        }
+          }
+        });
       } else {
-        startAutoScroll(
-          endTouchPoint,
-          duration: Duration.zero,
-        );
+        if (_forwardKey.currentContext == null) {
+          return;
+        }
+        if (endTouchPoint == null) {
+          // check if the selection is valid
+          final node = editorState.getNodeAtPath(selection.end.path);
+          if (node == null) {
+            return;
+          }
+          jumpTo(selection.end.path.first);
+        } else {
+          startAutoScroll(
+            endTouchPoint,
+            edgeOffset: editorState.autoScrollEdgeOffset,
+            duration: Duration.zero,
+          );
+        }
       }
     });
   }
