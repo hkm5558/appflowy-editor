@@ -98,6 +98,12 @@ class DeltaTextInputService extends TextInputService with DeltaTextInputClient {
     composingTextRange = TextRange.empty;
   }
 
+  // Match TextInputClient's default: platform focus does not acquire editor focus.
+  // DeltaTextInputClient implements TextInputClient, so Flutter 3.44's new default
+  // method is not inherited through that mixin.
+  @override
+  bool onFocusReceived() => false;
+
   @override
   void connectionClosed() {}
 
